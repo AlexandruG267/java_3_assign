@@ -7,13 +7,13 @@
 #Add your percept rules below:
 
 # If at location X and see passage to Y, remember the link
-at(X)&passage(Y) > +link(X,Y)
+at(X) & passage(Y) > +link(X,Y) & +link(Y,X)
 
 # If at location X and see key K, remember key location
-at(X)&key(K) > +keyAt(X,K)
+at(X) & key(K) > +keyAt(X,K)
 
 # If at location X and see locked door D, remember the door location
-at(X)&locked(D) > +lockedDoor(X,D)
+at(X) & locked(D) > +lockedDoor(X,D)
 
 # Update the current location in the belief base
 at(X) > +agentAt(X)

@@ -10,7 +10,7 @@
 
 # Open door at a location X if we have an appropriate key
 # Note: haveKey() fact is added to KB in the act cycle
-agentAt(X)&lockedDoor(D)&haveKey(K) > _open(X,K)
+agentAt(X) & lockedDoor(X,D) & haveKey(K) > _open(X,D,K)
 
 # If we are at the same location as a key, grab the key
 agentAt(X) & keyAt(X,K) > _grab(X,K)
