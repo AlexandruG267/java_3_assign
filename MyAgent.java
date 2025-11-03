@@ -46,7 +46,32 @@ public class MyAgent extends Agent {
 		//Please note because f is bound and p potentially contains the variables, unifiesWith is NOT symmetrical
 		//So: unifiesWith("human(X)","human(joost)") returns X=joost, while unifiesWith("human(joost)","human(X)") returns null 
 		//If no subst is found it returns null
-		return null;
+		
+		HashMap<String, String> output = new HashMap<>();
+		
+		// check the arity of both predicates
+		int length_f = f.getTerms().size();
+		int length_p = p.getTerms().size();
+		
+		// give an error if the arity doesn't match
+		if (length_f != length_p) {
+			System.out.println("Arity does not match");
+			return null;
+		}
+		
+		// iterate through the terms
+		for (int i = 0; i < length_f; i++) {
+			if (p.getTerm(i).var) {
+				output.put(p.getTerm(i).toString(), f.getTerm(i).toString());
+			}
+		}
+		
+		// in case no substitutions have been made
+		if (output.size() == 0) {
+			return null;
+		}
+		
+		return output;
 	}
 
 	@Override
@@ -54,7 +79,14 @@ public class MyAgent extends Agent {
 		// Substitutes all variable terms in predicate <old> for values in substitution <s>
 		//(only if a key is present in s matching the variable name of course)
 		//Use Term.substitute(s)
-		return null;
+		
+		Predicate output_predicate = new Predicate(old.toString());
+		
+		for (Term t: output_predicate.getTerms()) {
+			t.substitute(s);
+		}
+		
+		return output_predicate;
 	}
 
 	@Override
