@@ -34,8 +34,90 @@ public class MyAgent extends Agent {
 		//substitution is the one we are currently building recursively.
 		//conditions is the list of conditions you  still need to find a subst for (this list shrinks the further you get in the recursion).
 		//facts is the list of predicates you need to match against (find substitutions so that a predicate form the conditions unifies with a fact)
+		
+		// if conditions gets smaller the further we are, then it's a base case (no more conditions to check):
+		if (conditions.isEmpty()) {	
+			// we found something that matches, so add the current substitution and return (modify and move on)
+			allSubstitutions.add(new HashMap<>(substitution));
+			return true;
+		}
 
-		return false;
+		// this boolean will mark whether we found some substitution or not, after all the checks are done
+		boolean found_something = false;
+		
+		// if this is not the case, then it's time to solve for the conditions
+		// this is done by iterating through the facts, to unify the conditions with them
+		Predicate first_condition = conditions.get(0);
+		// technically, subList makes a List type, but we bypass this by immediately making a Vector out of it 
+		Vector<Predicate> remaining_conditions = new Vector<>(conditions.subList(1, conditions.size()));
+		
+		// we gotta make the checks to the '=' and '!=' predicates before the main substitution branch
+		// here we basically check the 'flag' or 'label' (however you wish to call it) of the Predicate itself
+		// I WILL ONLY CHECK for when "substitution" is not empty, i.e. when it's not the first predicate that gets
+		// analyzed 	
+		if (first_condition.eql) {
+			Predicate substituted = substitute(first_condition, substitution);
+
+			// it'll look like "=(X,peter)" substituted with {X=peter, Y=joost}
+			// and this will work out so
+			if (substituted.eql()) {
+				// now checking if the elements of the 
+				return findAllSubstitutions(allSubstitutions, substitution, remaining_conditions, facts);
+			}
+			// if it's not, we must clip the branch with the wrong values
+			else { return false; }
+		}
+		
+		// analogous for .not
+		if (first_condition.not) {
+			Predicate substituted = substitute(first_condition, substitution);
+			
+			if (substituted.not()) {
+				return findAllSubstitutions(allSubstitutions, substitution, remaining_conditions, facts);
+			}
+			else { return false;}
+		}
+		// now we have condition to match with, so it's time to get the facts to match against
+		for (Predicate fact: facts.values()) {
+			HashMap<String, String> new_substitution = unifiesWith(first_condition, fact);
+			
+			// now, to check if it's empty (null)
+			if (new_substitution != null) {
+				// we found a new substitution, now it's time to add it to the existing combination and check its validity
+				// this is the "Y=joost in both substitutions" check in conditions
+				// [parent(X,Y), parent(Y,Z)] and facts [parent(joost,peter), parent(peter,leon)] 
+				boolean consistent = true;
+				for (HashMap.Entry<String, String> entry: new_substitution.entrySet()) {
+					String variable = entry.getKey();
+					String value = entry.getValue();
+					
+					// this is the "make it or break it" point, where we check for keys in the current HashMap to have the same
+					// value for a key that is repeating (Y can't be equal to both "peter" and "leon")
+					if (substitution.containsKey(variable)) {
+						if (!substitution.get(variable).equals(value)) {
+							consistent = false;
+							break;
+						}
+					}
+				}
+				
+				if (consistent) {
+					// get got to ... something, either a pass or a fail for the current substitution. Nonetheless, 
+					// we must move on with the recursion
+					
+					HashMap<String, String> combined = new HashMap<>(substitution);
+					combined.putAll(new_substitution);  // dump the contents of the new substitution, that passed the test (hopefully)
+					// into combined
+					
+					boolean found = findAllSubstitutions(allSubstitutions, combined, remaining_conditions, facts);
+					
+					// check our winning condition
+					if (found) found_something = true;
+				}
+			}
+		}
+		
+		return found_something; 
 	}
 
 	@Override
