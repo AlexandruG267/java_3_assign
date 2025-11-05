@@ -27,14 +27,19 @@ public class MyAgent extends Agent {
 		
 		// Flag to check if we actually added anything
 		boolean newFactAdded = true;
-		
+		int loop_id = 0;
 		// Continue chaining until no new facts are added
 		while (newFactAdded) { 
 			newFactAdded = false;
+			loop_id ++;
 			
 			// Each time we try all the sentences in the KB
 			for (Sentence sentence: kb.rules()) {
 				
+				for (HashMap.Entry<String, Predicate>tester: derivedFacts.entrySet()) {
+					System.out.println(tester.getValue().toString());
+					System.out.println(loop_id);
+				}
 				
 				// Get the conditions and the conclusion
 				Vector<Predicate> preconditions = sentence.conditions;
@@ -44,6 +49,12 @@ public class MyAgent extends Agent {
 				// Attempt to find substitutions for the conditions
 				Collection<HashMap<String, String>> all_substitutions = new Vector<>();
 				boolean found_substituion = findAllSubstitutions(all_substitutions, new HashMap<>(), preconditions, derivedFacts);
+				
+				for (HashMap<String, String> tester: all_substitutions) {
+					for (HashMap.Entry<String, String> ntry: tester.entrySet()) {
+						System.out.println(ntry);
+					}
+				}
 
 				// if no substitutions are found from a sentence when we cannot build any grounded conclusions
 				if (!found_substituion) continue;
