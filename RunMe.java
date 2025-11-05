@@ -90,7 +90,7 @@ public class RunMe {
 	    
 	    conditions.clear();
 	    conditions.add(new Predicate("parent(X,Y)"));
-	    conditions.add(new Predicate("=(X,joost)"));  // X must be equal to "peter"
+	    conditions.add(new Predicate("=(X,joost)"));  // X must be equal to "joost"
 	    
 	    results.clear();
 	    initialSubstitution.clear();

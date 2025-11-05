@@ -130,7 +130,13 @@ public class MyAgent extends Agent {
 		//So: unifiesWith("human(X)","human(joost)") returns X=joost, while unifiesWith("human(joost)","human(X)") returns null 
 		//If no subst is found it returns null
 		
-		HashMap<String, String> output = new HashMap<>();
+		HashMap<String, String> result = new HashMap<>();
+		
+		// check if the name of the predicates match
+		if (!p.getName().equals(f.getName())) {
+			System.out.println("The predicates do not match");
+	        return null;
+	    }
 		
 		// check the arity of both predicates
 		int length_f = f.getTerms().size();
@@ -143,18 +149,22 @@ public class MyAgent extends Agent {
 		}
 		
 		// iterate through the terms
-		for (int i = 0; i < length_f; i++) {
-			if (p.getTerm(i).var) {
-				output.put(p.getTerm(i).toString(), f.getTerm(i).toString());
-			}
-		}
-		
-		// in case no substitutions have been made
-		if (output.size() == 0) {
-			return null;
-		}
-		
-		return output;
+		for (int i = 0; i < p.getTerms().size(); i++) {
+	        Term tP = p.getTerm(i);
+	        Term tF = f.getTerm(i);
+
+	        if (tP.var) {
+	            // variable in p can be bound to constant in f
+	            result.put(tP.toString(), tF.toString());
+	        } else {
+	            // both are constants → must match exactly
+	            if (!tP.toString().equals(tF.toString())) {
+	                return null;   // conflict, cannot unify
+	            }
+	        }
+	    }
+
+	    return result;
 	}
 
 	@Override
