@@ -77,6 +77,7 @@ public class MyAgent extends Agent {
 			}
 			else { return false;}
 		}
+		
 		// now we have condition to match with, so it's time to get the facts to match against
 		for (Predicate fact: facts.values()) {
 			HashMap<String, String> new_substitution = unifiesWith(first_condition, fact);
