@@ -13,6 +13,12 @@ import java.util.ArrayList;
 import leidenuniv.symbolicai.environment.Maze;
 import leidenuniv.symbolicai.logic.Predicate;
 
+//Why do I need to import this?
+import leidenuniv.symbolicai.logic.KB;
+import leidenuniv.symbolicai.logic.Sentence;
+
+
+
 public class RunMe {
 	//This is our main program class
 	// It loads a world, makes an agent and then keeps the agent alive by allowing it to complete it's sense think act cycle 
@@ -106,6 +112,38 @@ public class RunMe {
 	        i++;
 	    }
 	    System.out.println("\n");
+	    
+	    
+	    
+	    // Testing for forward chaining //
+	    
+	    // --- Create a small KB for testing forward chaining ---
+        KB kb = new KB();
+
+        // Facts (just conclusions, no conditions)
+        kb.add(new Sentence("parent(peter,joost)"));
+        kb.add(new Sentence("parent(joost,leon)"));
+        kb.add(new Sentence("parent(anna,sara)"));
+
+        // Rule: parent(X,Y) AND =(X,joost) -> parent_is_joost(Y)
+        kb.add(new Sentence("parent(X,Y)&=(X,anna)>annaparents(Y)"));
+        kb.add(new Sentence("parent(X,Y)&=(X,joost)>joostparents(Y)"));
+
+        // --- Create an agent ---
+        MyAgent egg = new MyAgent();
+
+        // --- Run forward chaining ---
+        KB derivedKB = egg.forwardChain(kb);
+
+        // --- Print all derived facts ---
+        System.out.println("=== Derived facts ===");
+        for (Sentence ns : derivedKB.rules()) {
+            System.out.println(" - " + ns);
+        }
+	    
+	    // Testing for forward chaining //
+	    
+	    
 
 		//If you need to test on a simpler file, you may use this one and comment out all the other KBs:
 		//a.loadKnowledgeBase("program", new File("data/family.txt"));

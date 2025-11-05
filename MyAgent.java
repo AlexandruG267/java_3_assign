@@ -21,7 +21,82 @@ public class MyAgent extends Agent {
 		//These are then processed by processFacts() (which is already implemented for you)
 		//HINT: You should assume that forwardChain only allows *bound* predicates to be added to the facts list for now.
 		
-		return null;
+		
+		// Facts discovered so far (only fully-bounded)
+		HashMap<String, Predicate> derivedFacts = new HashMap<>();
+		
+		// Flag to check if we actually added anything
+		boolean newFactAdded = true;
+		
+		// Continue chaining until no new facts are added
+		while (newFactAdded) { 
+			newFactAdded = false;
+			
+			// Each time we try all the sentences in the KB
+			for (Sentence sentence: kb.rules()) {
+				
+				
+				// Get the conditions and the conclusion
+				Vector<Predicate> preconditions = sentence.conditions;
+				Vector<Predicate> list_conclusions = sentence.conclusions;
+				
+				
+				// Attempt to find substitutions for the conditions
+				Collection<HashMap<String, String>> all_substitutions = new Vector<>();
+				boolean found_substituion = findAllSubstitutions(all_substitutions, new HashMap<>(), preconditions, derivedFacts);
+
+				
+				// if no substitutions are found from a sentence when we cannot build any grounded conclusions
+				if (!found_substituion) continue;
+				
+				
+				// for each substitution...
+				for (HashMap<String, String> substitution: all_substitutions) {
+					// ... and for each conclusion, create a new grounded conclusion if we can
+					for (Predicate conclusion: list_conclusions) {
+						
+						
+						Predicate grounded = substitute(conclusion, substitution);
+						
+						
+						// check if grounded is fully bound, skip if not
+						if (!grounded.bound()) continue;
+						
+						
+						// avoid operator predicates
+						if (grounded.isAction() || grounded.eql || grounded.not) {
+							continue;
+						}
+						
+						
+						// make the fact
+						String new_fact = grounded.toString();
+						
+						
+						// if the fact is new we add it and continue chaining
+						if (!derivedFacts.containsKey(new_fact)) {
+							derivedFacts.put(new_fact, grounded);
+							newFactAdded = true;
+						}
+						
+					}
+					
+				}
+				
+			}
+			
+		}
+		
+		
+		// The resulting KB that we will build
+		KB result = new KB();
+		
+		// Iterate through all the grounded facts we produced and add them to the KB
+		for (Predicate p: derivedFacts.values()) {
+			result.add(new Sentence(p.toString()));
+		}
+		
+		return result;
 	}
 
 	@Override
@@ -70,6 +145,16 @@ public class MyAgent extends Agent {
 		
 		// analogous for .not
 		if (first_condition.not) {
+			Predicate substituted = substitute(first_condition, substitution);
+			
+			if (substituted.not()) {
+				return findAllSubstitutions(allSubstitutions, substitution, remaining_conditions, facts);
+			}
+			else { return false;}
+		}
+		
+		// negation branch
+		if (first_condition.neg) {
 			Predicate substituted = substitute(first_condition, substitution);
 			
 			if (substituted.not()) {
@@ -134,7 +219,9 @@ public class MyAgent extends Agent {
 		
 		// check if the name of the predicates match
 		if (!p.getName().equals(f.getName())) {
-			System.out.println("The predicates do not match");
+//			System.out.println("The predicates do not match");
+//			System.out.println(p.getName());
+//			System.out.println(f.getName());
 	        return null;
 	    }
 		
@@ -157,7 +244,7 @@ public class MyAgent extends Agent {
 	            // variable in p can be bound to constant in f
 	            result.put(tP.toString(), tF.toString());
 	        } else {
-	            // both are constants → must match exactly
+	            // both are bounded and must match exactly
 	            if (!tP.toString().equals(tF.toString())) {
 	                return null;   // conflict, cannot unify
 	            }
