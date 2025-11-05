@@ -45,48 +45,36 @@ public class MyAgent extends Agent {
 				Collection<HashMap<String, String>> all_substitutions = new Vector<>();
 				boolean found_substituion = findAllSubstitutions(all_substitutions, new HashMap<>(), preconditions, derivedFacts);
 
-				
 				// if no substitutions are found from a sentence when we cannot build any grounded conclusions
 				if (!found_substituion) continue;
-				
 				
 				// for each substitution...
 				for (HashMap<String, String> substitution: all_substitutions) {
 					// ... and for each conclusion, create a new grounded conclusion if we can
 					for (Predicate conclusion: list_conclusions) {
-						
-						
+												
 						Predicate grounded = substitute(conclusion, substitution);
-						
 						
 						// check if grounded is fully bound, skip if not
 						if (!grounded.bound()) continue;
-						
 						
 						// avoid operator predicates
 						if (grounded.isAction() || grounded.eql || grounded.not) {
 							continue;
 						}
 						
-						
 						// make the fact
 						String new_fact = grounded.toString();
-						
 						
 						// if the fact is new we add it and continue chaining
 						if (!derivedFacts.containsKey(new_fact)) {
 							derivedFacts.put(new_fact, grounded);
 							newFactAdded = true;
 						}
-						
 					}
-					
 				}
-				
 			}
-			
 		}
-		
 		
 		// The resulting KB that we will build
 		KB result = new KB();
