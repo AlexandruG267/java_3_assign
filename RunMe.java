@@ -59,59 +59,59 @@ public class RunMe {
 //		System.out.println("Done with HashMaps analysis\n");
 		MyAgent agent = new MyAgent();
 		
-		// points 4 and 5
-		System.out.println(agent.substitute(p, s));
-		// point 6: testing the main substitution
-		// facts
-		HashMap<String, Predicate> facts = new HashMap<>();
-	    facts.put("f1", new Predicate("parent(peter,joost)"));
-	    facts.put("f2", new Predicate("parent(joost,leon)"));
-	    facts.put("f3", new Predicate("parent(joost,sacha)"));
-	    // conditions
-	    Vector<Predicate> conditions = new Vector<>();
-	    conditions.add(new Predicate("parent(X,Y)"));
-	    conditions.add(new Predicate("parent(Y,Z)"));
-	    // result collections
-	    Collection<HashMap<String, String>> results = new ArrayList<>();
-	    HashMap<String, String> initialSubstitution = new HashMap<>();
-	    
-	    boolean found = agent.findAllSubstitutions(results, initialSubstitution, conditions, facts);
-	    
-	    System.out.println("Found: " + found);
-	    System.out.println("Number of substitutions: " + results.size());
-	    System.out.println("\nAll substitutions:");
-	    int i = 1;
-	    for (HashMap<String, String> sub : results) {
-	        System.out.println("  " + i + ": " + sub);
-	        i++;
-	    }
-	    
-	    System.out.println("\n");
-	    
-	    // point 6: testing '=' and '!=' 
-	    facts.clear();
-	    facts.put("f1", new Predicate("parent(peter,joost)"));
-	    facts.put("f2", new Predicate("parent(joost,leon)"));
-	    facts.put("f3", new Predicate("parent(anna,sara)"));
-	    
-	    conditions.clear();
-	    conditions.add(new Predicate("parent(X,Y)"));
-	    conditions.add(new Predicate("=(X,joost)"));  // X must be equal to "joost"
-	    
-	    results.clear();
-	    initialSubstitution.clear();
-
-	    found = agent.findAllSubstitutions(results, initialSubstitution, conditions, facts);
-
-	    System.out.println("Found: " + found);
-	    System.out.println("Number of substitutions: " + results.size());
-	    System.out.println("All substitutions:");
-	    i = 1;
-	    for (HashMap<String, String> sub : results) {
-	        System.out.println("  " + i + ": " + sub);
-	        i++;
-	    }
-	    System.out.println("\n");
+//		// points 4 and 5
+//		System.out.println(agent.substitute(p, s));
+//		// point 6: testing the main substitution
+//		// facts
+//		HashMap<String, Predicate> facts = new HashMap<>();
+//	    facts.put("f1", new Predicate("parent(peter,joost)"));
+//	    facts.put("f2", new Predicate("parent(joost,leon)"));
+//	    facts.put("f3", new Predicate("parent(joost,sacha)"));
+//	    // conditions
+//	    Vector<Predicate> conditions = new Vector<>();
+//	    conditions.add(new Predicate("parent(X,Y)"));
+//	    conditions.add(new Predicate("parent(Y,Z)"));
+//	    // result collections
+//	    Collection<HashMap<String, String>> results = new ArrayList<>();
+//	    HashMap<String, String> initialSubstitution = new HashMap<>();
+//	    
+//	    boolean found = agent.findAllSubstitutions(results, initialSubstitution, conditions, facts);
+//	    
+//	    System.out.println("Found: " + found);
+//	    System.out.println("Number of substitutions: " + results.size());
+//	    System.out.println("\nAll substitutions:");
+//	    int i = 1;
+//	    for (HashMap<String, String> sub : results) {
+//	        System.out.println("  " + i + ": " + sub);
+//	        i++;
+//	    }
+//	    
+//	    System.out.println("\n");
+//	    
+//	    // point 6: testing '=' and '!=' 
+//	    facts.clear();
+//	    facts.put("f1", new Predicate("parent(peter,joost)"));
+//	    facts.put("f2", new Predicate("parent(joost,leon)"));
+//	    facts.put("f3", new Predicate("parent(anna,sara)"));
+//	    
+//	    conditions.clear();
+//	    conditions.add(new Predicate("parent(X,Y)"));
+//	    conditions.add(new Predicate("=(X,joost)"));  // X must be equal to "joost"
+//	    
+//	    results.clear();
+//	    initialSubstitution.clear();
+//
+//	    found = agent.findAllSubstitutions(results, initialSubstitution, conditions, facts);
+//
+//	    System.out.println("Found: " + found);
+//	    System.out.println("Number of substitutions: " + results.size());
+//	    System.out.println("All substitutions:");
+//	    i = 1;
+//	    for (HashMap<String, String> sub : results) {
+//	        System.out.println("  " + i + ": " + sub);
+//	        i++;
+//	    }
+//	    System.out.println("\n");
 	    
 	    
 	    
@@ -149,17 +149,17 @@ public class RunMe {
 		//a.loadKnowledgeBase("program", new File("data/family.txt"));
 		
 		
-		Scanner io= new Scanner(System.in);
-		
-		while (true) {
-			//have the agent run the sense-think-act loop.
-			a.cycle(w);
-			
-			//wait for an enter 
-			System.out.println("Press <enter> in the java console to continue next cycle");
-			String input = io.nextLine();
-			
-		}
+//		Scanner io= new Scanner(System.in);
+//		
+//		while (true) {
+//			//have the agent run the sense-think-act loop.
+//			a.cycle(w);
+//			
+//			//wait for an enter 
+//			System.out.println("Press <enter> in the java console to continue next cycle");
+//			String input = io.nextLine();
+//			
+//		}
 	}
 
 }
