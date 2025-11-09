@@ -137,6 +137,14 @@ public class MyAgent extends Agent {
 		if (first_condition.not) {
 			Predicate substituted = substitute(first_condition, substitution);
 			
+			// check if the negated predicate is fully bound after substitution
+		    if (!substituted.bound()) {
+		        // not fully bound yet - defer this negation to the end
+		        Vector<Predicate> deferred_conditions = new Vector<>(remaining_conditions);
+		        deferred_conditions.add(first_condition);  // move negation to end
+		        return findAllSubstitutions(allSubstitutions, substitution, deferred_conditions, facts);
+		    }
+			
 			if (substituted.not()) {
 				return findAllSubstitutions(allSubstitutions, substitution, remaining_conditions, facts);
 			}
@@ -145,12 +153,39 @@ public class MyAgent extends Agent {
 		
 		// negation branch
 		if (first_condition.neg) {
+			
+			// substitute any existing bindings
 			Predicate substituted = substitute(first_condition, substitution);
 			
-			if (substituted.not()) {
+			// check if the negated predicate is fully bound after substitution
+		    if (!substituted.bound()) {
+		        // not fully bound yet - defer this negation to the end
+		        Vector<Predicate> deferred_conditions = new Vector<>(remaining_conditions);
+		        deferred_conditions.add(first_condition);  // move negation to end
+		        return findAllSubstitutions(allSubstitutions, substitution, deferred_conditions, facts);
+		    }
+			
+			// build a positive version of the predicate (strip the leading '!')
+			Predicate positive = new Predicate(substituted.toString().substring(1));
+			
+			// check if the positive form unifies with ANY fact
+			boolean unified = false;
+			for (Predicate fact : facts.values()) {
+				if (unifiesWith(positive, fact) != null) {
+					unified = true;
+					break;
+				}
+			}
+			
+			// negation succeeds only when positive form does NOT unify with any fact
+			if (!unified) {
+				// valid, so continue with the remaining conditions
 				return findAllSubstitutions(allSubstitutions, substitution, remaining_conditions, facts);
 			}
-			else { return false;}
+			// otherwise, this substitution branch fails
+			else {
+				return false;
+			}
 		}
 		
 		// now we have condition to match with, so it's time to get the facts to match against
@@ -207,23 +242,15 @@ public class MyAgent extends Agent {
 		
 		HashMap<String, String> result = new HashMap<>();
 		
-		// check if the name of the predicates match
-		if (!p.getName().equals(f.getName())) {
-//			System.out.println("The predicates do not match");
-//			System.out.println(p.getName());
-//			System.out.println(f.getName());
-	        return null;
-	    }
+		// handle negated predicates: unify ignoring the '!' sign
+		String nameP = p.getName();
+		String nameF = f.getName();
+
+		// compare names without '!'
+		if (!nameP.equals(nameF)) return null;
 		
 		// check the arity of both predicates
-		int length_f = f.getTerms().size();
-		int length_p = p.getTerms().size();
-		
-		// give an error if the arity doesn't match
-		if (length_f != length_p) {
-			System.out.println("Arity does not match");
-			return null;
-		}
+		if (p.getTerms().size() != f.getTerms().size()) return null;
 		
 		// iterate through the terms
 		for (int i = 0; i < p.getTerms().size(); i++) {
