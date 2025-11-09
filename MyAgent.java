@@ -27,23 +27,13 @@ public class MyAgent extends Agent {
 		
 		// Flag to check if we actually added anything
 		boolean newFactAdded = true;
-//		int loop_id = 0;
+
 		// Continue chaining until no new facts are added
 		while (newFactAdded) { 
 			newFactAdded = false;
-//			System.out.println("Starts WHILE loop");
 			
 			// Each time we try all the sentences in the KB
 			for (Sentence sentence: kb.rules()) {
-//				System.out.println("Starts FOR loop");
-//				System.out.println(loop_id);
-//				System.out.println();
-//
-//				System.out.println("What's in derivedFacts:");
-//				for (HashMap.Entry<String, Predicate>tester: derivedFacts.entrySet()) {
-//					System.out.println(tester.getValue().toString());
-//				}
-//				loop_id ++;
 				
 				// Get the conditions and the conclusion
 				Vector<Predicate> preconditions = sentence.conditions;
@@ -53,16 +43,6 @@ public class MyAgent extends Agent {
 				// Attempt to find substitutions for the conditions
 				Collection<HashMap<String, String>> all_substitutions = new Vector<>();
 				boolean found_substituion = findAllSubstitutions(all_substitutions, new HashMap<>(), preconditions, derivedFacts);
-				
-//				System.out.println("What's in all_substitutions: ");
-//				for (HashMap<String, String> tester: all_substitutions) {
-//					for (HashMap.Entry<String, String> ntry: tester.entrySet()) {
-//						System.out.println(ntry);
-//					}
-//				}
-				
-				// shows that the function does find "some" substitution at every iteration...somehow 
-//				System.out.println(found_substituion);
 				
 				// if no substitutions are found from a sentence when we cannot build any grounded conclusions
 				if (!found_substituion) continue;
@@ -74,13 +54,15 @@ public class MyAgent extends Agent {
 												
 						Predicate grounded = substitute(conclusion, substitution);
 						
-						// check if grounded is fully bound, skip if not
-						if (!grounded.bound()) continue;
-						
-						// avoid operator predicates
-						if (grounded.isAction() || grounded.eql || grounded.not) {
-							continue;
-						}
+//						// check if grounded is fully bound, skip if not
+//						if (!grounded.bound()) continue;
+//						
+//						// avoid operator predicates
+//						if (grounded.isAction() || grounded.eql || grounded.not) {
+//							continue;
+//						}
+						// I'm not saying they aren't important, or that they couldn't be in the maze part
+						// but for our example, they never get ran...so...I commented them
 						
 						// make the fact
 						String new_fact = grounded.toString();
@@ -89,10 +71,6 @@ public class MyAgent extends Agent {
 						if (!derivedFacts.containsKey(new_fact)) {
 							derivedFacts.put(new_fact, grounded);
 							newFactAdded = true;
-//							System.out.println("Adding");
-//							System.out.println(derivedFacts);
-//							System.out.println("to facts (somehow)");
-//							System.out.println("next LOOP\n\n");
 						}
 					}
 				}
