@@ -158,6 +158,8 @@ public class MyAgent extends Agent {
 			Predicate substituted = substitute(first_condition, substitution);
 			
 			// check if the negated predicate is fully bound after substitution
+			// We do this, because we can run into problems if we make a substitution that becomes a problem
+			// after more substitutions are made
 		    if (!substituted.bound()) {
 		        // not fully bound yet - defer this negation to the end
 		        Vector<Predicate> deferred_conditions = new Vector<>(remaining_conditions);
