@@ -30,12 +30,12 @@ public class RunMe {
 		a.HUMAN_DECISION=false;
 		a.VERBOSE=true;
 		//Load the rules and static knowledge for the different steps in the agent cycle
-//		a.loadKnowledgeBase("percepts", new File("data/percepts.txt"));
-//		a.loadKnowledgeBase("program", new File("data/program.txt"));
-//		a.loadKnowledgeBase("actions", new File("data/actions.txt"));
-		//a.loadKnowledgeBase("percepts", new File("data/percepts_joost.txt"));
-		//a.loadKnowledgeBase("program", new File("data/program_joost.txt"));
-		//a.loadKnowledgeBase("actions", new File("data/actions_joost.txt"));
+		a.loadKnowledgeBase("percepts", new File("data/percepts.txt"));
+		a.loadKnowledgeBase("program", new File("data/program.txt"));
+		a.loadKnowledgeBase("actions", new File("data/actions.txt"));
+//		a.loadKnowledgeBase("percepts", new File("data/percepts_joost.txt"));
+//		a.loadKnowledgeBase("program", new File("data/program_joost.txt"));
+//		a.loadKnowledgeBase("actions", new File("data/actions_joost.txt"));
 		Predicate p = new Predicate("parent(X,leon)");
 		HashMap<String, String> s = new HashMap<>();
 		s.put("X", "joost");
@@ -57,7 +57,7 @@ public class RunMe {
 //		if (s.containsKey("X"))
 //			System.out.println("Hurrah"+"\n");
 //		System.out.println("Done with HashMaps analysis\n");
-		MyAgent agent = new MyAgent();
+//		MyAgent agent = new MyAgent();
 		
 //		// points 4 and 5
 //		System.out.println(agent.substitute(p, s));
@@ -118,28 +118,28 @@ public class RunMe {
 	    // Testing for forward chaining //
 	    
 	    // --- Create a small KB for testing forward chaining ---
-        KB kb = new KB();
-
-        // Facts (just conclusions, no conditions)
-        kb.add(new Sentence("parent(peter,joost)"));
-        kb.add(new Sentence("parent(joost,leon)"));
-        kb.add(new Sentence("parent(anna,sara)"));
-
-        // Rule: parent(X,Y) AND =(X,joost) -> parent_is_joost(Y)
-        kb.add(new Sentence("parent(X,Y)&=(X,anna)>annaparents(Y)"));
-        kb.add(new Sentence("parent(X,Y)&=(X,joost)>joostparents(Y)"));
-
-        // --- Create an agent ---
-        MyAgent egg = new MyAgent();
-
-        // --- Run forward chaining ---
-        KB derivedKB = egg.forwardChain(kb);
-
-        // --- Print all derived facts ---
-        System.out.println("=== Derived facts ===");
-        for (Sentence ns : derivedKB.rules()) {
-            System.out.println(" - " + ns);
-        }
+//        KB kb = new KB();
+//
+//        // Facts (just conclusions, no conditions)
+//        kb.add(new Sentence("parent(peter,joost)"));
+//        kb.add(new Sentence("parent(joost,leon)"));
+//        kb.add(new Sentence("parent(anna,sara)"));
+//
+//        // Rule: parent(X,Y) AND =(X,joost) -> parent_is_joost(Y)
+//        kb.add(new Sentence("parent(X,Y)&=(X,anna)>annaparents(Y)"));
+//        kb.add(new Sentence("parent(X,Y)&=(X,joost)>joostparents(Y)"));
+//
+//        // --- Create an agent ---
+//        MyAgent egg = new MyAgent();
+//
+//        // --- Run forward chaining ---
+//        KB derivedKB = egg.forwardChain(kb);
+//
+//        // --- Print all derived facts ---
+//        System.out.println("=== Derived facts ===");
+//        for (Sentence ns : derivedKB.rules()) {
+//            System.out.println(" - " + ns);
+//        }
 	    
 	    // Testing for forward chaining //
 	    
@@ -149,17 +149,24 @@ public class RunMe {
 		//a.loadKnowledgeBase("program", new File("data/family.txt"));
 		
 		
-//		Scanner io= new Scanner(System.in);
-//		
-//		while (true) {
-//			//have the agent run the sense-think-act loop.
-//			a.cycle(w);
-//			
-//			//wait for an enter 
-//			System.out.println("Press <enter> in the java console to continue next cycle");
-//			String input = io.nextLine();
-//			
-//		}
+		Scanner io= new Scanner(System.in);
+		
+		// Flag for debug mode
+		a.DEBUG = false;
+		// Flag for planning, no planning means random moves
+		a.PLAN = true;
+		// Flag for manual handling
+		a.HUMAN_DECISION = false;
+		
+		while (true) {
+			//have the agent run the sense-think-act loop.
+			a.cycle(w);
+			
+			//wait for an enter 
+			System.out.println("Press <enter> in the java console to continue next cycle");
+			String input = io.nextLine();
+			
+		}
 	}
 
 }

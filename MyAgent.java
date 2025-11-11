@@ -295,7 +295,20 @@ public class MyAgent extends Agent {
 		//Ends at maxDepth
 		//Predicate goal is the goal predicate to find a plan for.
 		//Return null if no plan is found.
-		return null;
+		if (kb == null || goal == null) return null;
+
+	    for (int limit = 1; limit <= maxDepth; limit++) {
+	        // make a local copy of the current belief state
+	        KB stateCopy = new KB().union(kb);
+
+	        // start DFS at depth 0 with an empty partial plan, bounded by `limit`
+	        Plan plan = depthFirst(limit, 0, stateCopy, goal, new Plan());
+
+	        if (plan != null) {
+	            return plan; // return the first plan found at this depth
+	        }
+	    }
+	    return null; // nothing found up to maxDepth
 	}
 
 	@Override
@@ -306,6 +319,75 @@ public class MyAgent extends Agent {
 		//Returns (bubbles back through recursion) the plan when the state entails the goal predicate
 		//Returns null if capped or if there are no (more) actions to perform in one node (state)
 		//HINT: make use of think() and act() using the local state for the node in the search you are in.
+		
+		// base case: the goal is already in our state
+		if (state != null && goal != null) {
+			
+			// make a placeholder for the sentence with our goal
+			Sentence goal_sentence = new Sentence(goal.toString());
+			
+			// if the goal in the KB, return partial plan
+			if (state.contains(goal_sentence)) {
+				return partialPlan;
+			}
+		}
+		
+		
+		// before recursing, check the depth
+		if (depth > maxDepth) return null;
+		
+		
+		// find available actions at this state
+		KB local_desires = new KB();
+		KB local_intentions = new KB();
+		// think() performs forward chaining and populates the KBs
+		think(state, local_desires, local_intentions);
+		
+		
+		// if there are no actions to perform, return null
+		if (local_intentions.rules().size() == 0) return null;
+		
+		
+		// try each possible action
+		for (Sentence s: local_intentions.rules()) {
+			
+			// action that we are going to take
+			Predicate action = new Predicate(s);
+			
+			// simulate an action on a copy of a state
+			KB next_state = new KB();
+			// load our previous state
+			next_state.union(state);
+			
+			// make the new, empty, desires KB
+			KB next_desires = new KB();
+			
+			
+			// simulate the action (maze set to null, see act() in the agent file)
+			act(null, action, next_state, next_desires);
+			
+			
+			// make a copy of the plan
+			Plan next_plan = new Plan();
+			for (int i = 0; i < partialPlan.size(); i++) {
+				next_plan.add(partialPlan.get(i));
+			}
+			
+			// extend the plan with our last action
+			next_plan.add(action);
+			
+			
+			// recurse further into the tree
+			Plan result = depthFirst(maxDepth, depth + 1, next_state, goal, next_plan);
+			
+			
+			// perculate up the solution
+			if (result != null) return result;
+			
+		}
+		
+		// no plan from this node
 		return null;
+		
 	}
 }
