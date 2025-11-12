@@ -6,7 +6,7 @@
 
 # Open door action
 # Mark the door as opened
-open(X,D,K) > -lockedDoor(X,D) & +opened(X,D)
+open(X,K) > -lockedDoor(X,K) & +opened(K)
 
 # Grab key action
 grab(X,K) > +haveKey(K) & -keyAt(X,K)

@@ -10,8 +10,6 @@ import leidenuniv.symbolicai.logic.Sentence;
 import leidenuniv.symbolicai.logic.Term;
 
 public class MyAgent extends Agent {
-	
-	
 
 	@Override
 	public KB forwardChain(KB kb) {
@@ -20,53 +18,41 @@ public class MyAgent extends Agent {
 		//The resulting KB includes all deduced predicates, actions, additions and deletions, and goals.
 		//These are then processed by processFacts() (which is already implemented for you)
 		//HINT: You should assume that forwardChain only allows *bound* predicates to be added to the facts list for now.
-		
-		
+
 		// Facts discovered so far (only fully-bounded)
 		HashMap<String, Predicate> derivedFacts = new HashMap<>();
-		
+
 		// Flag to check if we actually added anything
 		boolean newFactAdded = true;
 
 		// Continue chaining until no new facts are added
-		while (newFactAdded) { 
+		while (newFactAdded) {
 			newFactAdded = false;
-			
+
 			// Each time we try all the sentences in the KB
-			for (Sentence sentence: kb.rules()) {
-				
+			for (Sentence sentence : kb.rules()) {
+
 				// Get the conditions and the conclusion
 				Vector<Predicate> preconditions = sentence.conditions;
 				Vector<Predicate> list_conclusions = sentence.conclusions;
-				
-				
+
 				// Attempt to find substitutions for the conditions
 				Collection<HashMap<String, String>> all_substitutions = new Vector<>();
 				boolean found_substituion = findAllSubstitutions(all_substitutions, new HashMap<>(), preconditions, derivedFacts);
-				
+
 				// if no substitutions are found from a sentence when we cannot build any grounded conclusions
 				if (!found_substituion) continue;
-				
+
 				// for each substitution...
-				for (HashMap<String, String> substitution: all_substitutions) {
+				for (HashMap<String, String> substitution : all_substitutions) {
 					// ... and for each conclusion, create a new grounded conclusion if we can
-					for (Predicate conclusion: list_conclusions) {
-												
+					for (Predicate conclusion : list_conclusions) {
+
 						Predicate grounded = substitute(conclusion, substitution);
-						
-//						// check if grounded is fully bound, skip if not
-//						if (!grounded.bound()) continue;
-//						
-//						// avoid operator predicates
-//						if (grounded.isAction() || grounded.eql || grounded.not) {
-//							continue;
-//						}
-						// I'm not saying they aren't important, or that they couldn't be in the maze part
-						// but for our example, they never get ran...so...I commented them
-						
+
 						// make the fact
 						String new_fact = grounded.toString();
-						
+
 						// if the fact is new we add it and continue chaining
 						if (!derivedFacts.containsKey(new_fact)) {
 							derivedFacts.put(new_fact, grounded);
@@ -76,22 +62,22 @@ public class MyAgent extends Agent {
 				}
 			}
 		}
-		
+
 		// The resulting KB that we will build
 		KB result = new KB();
-		
+
 		// Iterate through all the grounded facts we produced and add them to the KB
-		for (Predicate p: derivedFacts.values()) {
+		for (Predicate p : derivedFacts.values()) {
 			result.add(new Sentence(p.toString()));
 		}
-		
+
 		return result;
-		
+
 	}
 
 	@Override
 	public boolean findAllSubstitutions(Collection<HashMap<String, String>> allSubstitutions,
-			HashMap<String, String> substitution, Vector<Predicate> conditions, HashMap<String, Predicate> facts) {
+										HashMap<String, String> substitution, Vector<Predicate> conditions, HashMap<String, Predicate> facts) {
 		//Recursive method to find *all* valid substitutions for a vector of conditions, given a set of facts
 		//The recursion is over Vector<Predicate> conditions (so this vector gets shorter and shorter, the farther you are with finding substitutions)
 		//It returns true if at least one substitution is found (can be the empty substitution, if nothing needs to be substituted to unify the conditions with the facts)
@@ -99,9 +85,9 @@ public class MyAgent extends Agent {
 		//substitution is the one we are currently building recursively.
 		//conditions is the list of conditions you  still need to find a subst for (this list shrinks the further you get in the recursion).
 		//facts is the list of predicates you need to match against (find substitutions so that a predicate form the conditions unifies with a fact)
-		
+
 		// if conditions gets smaller the further we are, then it's a base case (no more conditions to check):
-		if (conditions.isEmpty()) {	
+		if (conditions.isEmpty()) {
 			// we found something that matches, so add the current substitution and return (modify and move on)
 			allSubstitutions.add(new HashMap<>(substitution));
 			return true;
@@ -109,67 +95,77 @@ public class MyAgent extends Agent {
 
 		// this boolean will mark whether we found some substitution or not, after all the checks are done
 		boolean found_something = false;
-		
+
 		// if this is not the case, then it's time to solve for the conditions
 		// this is done by iterating through the facts, to unify the conditions with them
 		Predicate first_condition = conditions.get(0);
-		// technically, subList makes a List type, but we bypass this by immediately making a Vector out of it 
+		// technically, subList makes a List type, but we bypass this by immediately making a Vector out of it
 		Vector<Predicate> remaining_conditions = new Vector<>(conditions.subList(1, conditions.size()));
-		
+
 		// we gotta make the checks to the '=' and '!=' predicates before the main substitution branch
 		// here we basically check the 'flag' or 'label' (however you wish to call it) of the Predicate itself
 		// I WILL ONLY CHECK for when "substitution" is not empty, i.e. when it's not the first predicate that gets
-		// analyzed 	
+		// analyzed
 		if (first_condition.eql) {
 			Predicate substituted = substitute(first_condition, substitution);
+
+			if (!substituted.bound()) {
+				// not fully bound yet - defer this negation to the end
+				Vector<Predicate> deferred_conditions = new Vector<>(remaining_conditions);
+				deferred_conditions.add(first_condition);  // move negation to end
+				return findAllSubstitutions(allSubstitutions, substitution, deferred_conditions, facts);
+			}
 
 			// it'll look like "=(X,peter)" substituted with {X=peter, Y=joost}
 			// and this will work out so
 			if (substituted.eql()) {
-				// now checking if the elements of the 
+				// now checking if the elements of the
 				return findAllSubstitutions(allSubstitutions, substitution, remaining_conditions, facts);
 			}
 			// if it's not, we must clip the branch with the wrong values
-			else { return false; }
+			else {
+				return false;
+			}
 		}
-		
+
 		// analogous for .not
 		if (first_condition.not) {
 			Predicate substituted = substitute(first_condition, substitution);
-			
+
 			// check if the negated predicate is fully bound after substitution
-		    if (!substituted.bound()) {
-		        // not fully bound yet - defer this negation to the end
-		        Vector<Predicate> deferred_conditions = new Vector<>(remaining_conditions);
-		        deferred_conditions.add(first_condition);  // move negation to end
-		        return findAllSubstitutions(allSubstitutions, substitution, deferred_conditions, facts);
-		    }
-			
+			if (!substituted.bound()) {
+				// not fully bound yet - defer this negation to the end
+				Vector<Predicate> deferred_conditions = new Vector<>(remaining_conditions);
+				deferred_conditions.add(first_condition);  // move negation to end
+				return findAllSubstitutions(allSubstitutions, substitution, deferred_conditions, facts);
+			}
+
 			if (substituted.not()) {
 				return findAllSubstitutions(allSubstitutions, substitution, remaining_conditions, facts);
+			} else {
+				return false;
 			}
-			else { return false;}
 		}
-		
+
 		// negation branch
 		if (first_condition.neg) {
-			
+
 			// substitute any existing bindings
 			Predicate substituted = substitute(first_condition, substitution);
-			
+
 			// check if the negated predicate is fully bound after substitution
 			// We do this, because we can run into problems if we make a substitution that becomes a problem
 			// after more substitutions are made
-		    if (!substituted.bound()) {
-		        // not fully bound yet - defer this negation to the end
-		        Vector<Predicate> deferred_conditions = new Vector<>(remaining_conditions);
-		        deferred_conditions.add(first_condition);  // move negation to end
-		        return findAllSubstitutions(allSubstitutions, substitution, deferred_conditions, facts);
-		    }
-			
+			if (!substituted.bound()) {
+				// not fully bound yet - defer this negation to the end
+				Vector<Predicate> deferred_conditions = new Vector<>(remaining_conditions);
+				deferred_conditions.add(first_condition);  // move negation to end
+				return findAllSubstitutions(allSubstitutions, substitution, deferred_conditions, facts);
+			}
+
 			// build a positive version of the predicate (strip the leading '!')
 			Predicate positive = new Predicate(substituted.toString().substring(1));
-			
+
 			// check if the positive form unifies with ANY fact
 			boolean unified = false;
 			for (Predicate fact : facts.values()) {
@@ -178,7 +174,7 @@ public class MyAgent extends Agent {
 					break;
 				}
 			}
-			
+
 			// negation succeeds only when positive form does NOT unify with any fact
 			if (!unified) {
 				// valid, so continue with the remaining conditions
@@ -189,21 +185,21 @@ public class MyAgent extends Agent {
 				return false;
 			}
 		}
-		
+
 		// now we have condition to match with, so it's time to get the facts to match against
-		for (Predicate fact: facts.values()) {
+		for (Predicate fact : facts.values()) {
 			HashMap<String, String> new_substitution = unifiesWith(first_condition, fact);
-			
+
 			// now, to check if it's empty (null)
 			if (new_substitution != null) {
 				// we found a new substitution, now it's time to add it to the existing combination and check its validity
 				// this is the "Y=joost in both substitutions" check in conditions
-				// [parent(X,Y), parent(Y,Z)] and facts [parent(joost,peter), parent(peter,leon)] 
+				// [parent(X,Y), parent(Y,Z)] and facts [parent(joost,peter), parent(peter,leon)]
 				boolean consistent = true;
-				for (HashMap.Entry<String, String> entry: new_substitution.entrySet()) {
+				for (HashMap.Entry<String, String> entry : new_substitution.entrySet()) {
 					String variable = entry.getKey();
 					String value = entry.getValue();
-					
+
 					// this is the "make it or break it" point, where we check for keys in the current HashMap to have the same
 					// value for a key that is repeating (Y can't be equal to both "peter" and "leon")
 					if (substitution.containsKey(variable)) {
@@ -213,24 +209,24 @@ public class MyAgent extends Agent {
 						}
 					}
 				}
-				
+
 				if (consistent) {
-					// get got to ... something, either a pass or a fail for the current substitution. Nonetheless, 
+					// get got to ... something, either a pass or a fail for the current substitution. Nonetheless,
 					// we must move on with the recursion
-					
+
 					HashMap<String, String> combined = new HashMap<>(substitution);
 					combined.putAll(new_substitution);  // dump the contents of the new substitution, that passed the test (hopefully)
 					// into combined
-					
+
 					boolean found = findAllSubstitutions(allSubstitutions, combined, remaining_conditions, facts);
-					
+
 					// check our winning condition
 					if (found) found_something = true;
 				}
 			}
 		}
-		
-		return found_something; 
+
+		return found_something;
 	}
 
 	@Override
@@ -239,38 +235,45 @@ public class MyAgent extends Agent {
 		//You may assume that Predicate f is fully bound (i.e., it has no variables anymore)
 		//The result can be an empty substitution, if no subst is needed to unify p with f (e.g., if p an f contain the same constants or do not have any terms)
 		//Please note because f is bound and p potentially contains the variables, unifiesWith is NOT symmetrical
-		//So: unifiesWith("human(X)","human(joost)") returns X=joost, while unifiesWith("human(joost)","human(X)") returns null 
+		//So: unifiesWith("human(X)","human(joost)") returns X=joost, while unifiesWith("human(joost)","human(X)") returns null
 		//If no subst is found it returns null
-		
+
 		HashMap<String, String> result = new HashMap<>();
-		
+
 		// handle negated predicates: unify ignoring the '!' sign
 		String nameP = p.getName();
 		String nameF = f.getName();
 
 		// compare names without '!'
 		if (!nameP.equals(nameF)) return null;
-		
+
 		// check the arity of both predicates
 		if (p.getTerms().size() != f.getTerms().size()) return null;
-		
+
 		// iterate through the terms
 		for (int i = 0; i < p.getTerms().size(); i++) {
-	        Term tP = p.getTerm(i);
-	        Term tF = f.getTerm(i);
+			Term tP = p.getTerm(i);
+			Term tF = f.getTerm(i);
 
-	        if (tP.var) {
-	            // variable in p can be bound to constant in f
-	            result.put(tP.toString(), tF.toString());
-	        } else {
-	            // both are bounded and must match exactly
-	            if (!tP.toString().equals(tF.toString())) {
-	                return null;   // conflict, cannot unify
-	            }
-	        }
-	    }
+			if (tP.var) {
 
-	    return result;
+				// check if we have not performed a similar substitution already
+				if (result.containsKey((tP.toString())) && !result.get(tP.toString()).equals(tF.toString())) {
+					return null;
+				}
+
+				// variable in p can be bound to constant in f
+				result.put(tP.toString(), tF.toString());
+
+			} else {
+				// both are bounded and must match exactly
+				if (!tP.toString().equals(tF.toString())) {
+					return null;   // conflict, cannot unify
+				}
+			}
+		}
+
+		return result;
 	}
 
 	@Override
@@ -278,13 +281,13 @@ public class MyAgent extends Agent {
 		// Substitutes all variable terms in predicate <old> for values in substitution <s>
 		//(only if a key is present in s matching the variable name of course)
 		//Use Term.substitute(s)
-		
+
 		Predicate output_predicate = new Predicate(old.toString());
-		
-		for (Term t: output_predicate.getTerms()) {
+
+		for (Term t : output_predicate.getTerms()) {
 			t.substitute(s);
 		}
-		
+
 		return output_predicate;
 	}
 
@@ -297,18 +300,18 @@ public class MyAgent extends Agent {
 		//Return null if no plan is found.
 		if (kb == null || goal == null) return null;
 
-	    for (int limit = 1; limit <= maxDepth; limit++) {
-	        // make a local copy of the current belief state
-	        KB stateCopy = new KB().union(kb);
+		for (int limit = 1; limit <= maxDepth; limit++) {
+			// make a local copy of the current belief state
+			KB stateCopy = new KB().union(kb);
 
-	        // start DFS at depth 0 with an empty partial plan, bounded by `limit`
-	        Plan plan = depthFirst(limit, 0, stateCopy, goal, new Plan());
+			// start DFS at depth 0 with an empty partial plan, bounded by `limit`
+			Plan plan = depthFirst(limit, 0, stateCopy, goal, new Plan());
 
-	        if (plan != null) {
-	            return plan; // return the first plan found at this depth
-	        }
-	    }
-	    return null; // nothing found up to maxDepth
+			if (plan != null) {
+				return plan; // return the first plan found at this depth
+			}
+		}
+		return null; // nothing found up to maxDepth
 	}
 
 	@Override
@@ -319,72 +322,45 @@ public class MyAgent extends Agent {
 		//Returns (bubbles back through recursion) the plan when the state entails the goal predicate
 		//Returns null if capped or if there are no (more) actions to perform in one node (state)
 		//HINT: make use of think() and act() using the local state for the node in the search you are in.
-		
-		// base case: the goal is already in our state
-		if (state != null && goal != null) {
-			
-			// make a placeholder for the sentence with our goal
-			Sentence goal_sentence = new Sentence(goal.toString());
-			
-			// if the goal in the KB, return partial plan
-			if (state.contains(goal_sentence)) {
-				return partialPlan;
-			}
-		}
-		
-		
+
+		// base cases
+
+		// found the goal
+		if (state.contains(goal)) return partialPlan;
+
 		// before recursing, check the depth
-		if (depth > maxDepth) return null;
-		
-		
-		// find available actions at this state
-		KB local_desires = new KB();
+		if (depth >= maxDepth) return null;
+
 		KB local_intentions = new KB();
-		// think() performs forward chaining and populates the KBs
-		think(state, local_desires, local_intentions);
-		
-		
-		// if there are no actions to perform, return null
-		if (local_intentions.rules().size() == 0) return null;
-		
-		
+		// think() performs forward chaining on the state and populates the KBs
+		think(state, null, local_intentions);
+
 		// try each possible action
-		for (Sentence s: local_intentions.rules()) {
-			
-			// action that we are going to take
-			Predicate action = new Predicate(s);
-			// simulate an action on a copy of a state
-			KB next_state = new KB();
-			// load our previous state
-			next_state.union(state);
-			// make the new, empty, desires KB
-			KB next_desires = new KB();
-			
-			
-			// simulate the action (maze set to null, see act() in the agent file)
-			act(null, action, next_state, next_desires);
-			
-			
-			// make a copy of the plan
-			Plan next_plan = new Plan();
-			for (int i = 0; i < partialPlan.size(); i++) {
-				next_plan.add(partialPlan.get(i));
-			}
-			// extend the plan with our last action
-			next_plan.add(action);
-			
-			
-			// recurse further into the tree
-			Plan result = depthFirst(maxDepth, depth + 1, next_state, goal, next_plan);
-			
-			
-			// perculate up the solution
-			if (result != null) return result;
-			
+		for (Sentence s : local_intentions.rules()) {
+
+			// make a copy of the state and perform forward chaining
+			KB copyState = forwardChain(state);
+
+			// retrieve the action we will perform
+			Predicate action = s.conclusions.get(0);
+
+			// simulate the action
+			act(null, action, copyState, null);
+
+			// expend our chain of actions (partialPlan)
+			Plan newPlan = new Plan(partialPlan);
+			newPlan.add(action);
+
+			// recurse deeper into the state space
+			newPlan = depthFirst(maxDepth, depth + 1, copyState, goal, newPlan);
+
+			// bubble up the answer
+			if (newPlan != null) return newPlan;
+
 		}
-		
+
 		// no plan from this node
 		return null;
-		
+
 	}
 }

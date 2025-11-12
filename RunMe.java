@@ -152,9 +152,9 @@ public class RunMe {
 		Scanner io= new Scanner(System.in);
 		
 		// Flag for debug mode
-		a.DEBUG = true;
+		a.DEBUG = false;
 		// Flag for planning, no planning means random moves
-		a.PLAN = false;
+		a.PLAN = true;
 		// Flag for manual handling
 		a.HUMAN_DECISION = false;
 		
