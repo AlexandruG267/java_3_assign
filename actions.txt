@@ -5,10 +5,12 @@
 #Add your action postcondition rules below:
 
 # Open door action
-open(X,K) > -lockedDoor(X,K)
+# Mark the door as opened
+open(X,D,K) > -lockedDoor(X,D) & +opened(X,D)
 
 # Grab key action
-grab(X,K) > +haveKey(K)&-keyAt(X,K)
+grab(X,K) > +haveKey(K) & -keyAt(X,K)
 
 # Move action
-goto(X,Y) > -agentAt(X)&+agentAt(Y)
+# Make sure we also mark the new location as visited
+goto(X,Y) > -agentAt(X) & +agentAt(Y) & +visited(Y)

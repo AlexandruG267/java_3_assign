@@ -10,10 +10,25 @@
 
 # Open door at a location X if we have an appropriate key
 # Note: haveKey() fact is added to KB in the act cycle
-agentAt(X)&lockedDoor(D)&haveKey(K) > _open(X,K)
+agentAt(X) & lockedDoor(X,D) & haveKey(K) > _open(X,D,K)
 
 # If we are at the same location as a key, grab the key
 agentAt(X) & keyAt(X,K) > _grab(X,K)
 
 # If we can follow a link, do
-agentAt(X) & link(X,Y) > _goto(X,Y)
+# The visited(X) is iffy, the problem is that it would add goto to both directions otherwise, remove it and see what happens
+agentAt(X) & link(X,Y) & visited(X) > _goto(X,Y)
+
+
+
+# Goal 1: get any known key we don't have yet
+keyAt(L,K) & !haveKey(K) > *haveKey(K)
+
+# Goal 2: open a locked door at our current location (once opened, mark it so the goal can be satisfied)
+agentAt(X) & lockedDoor(X,D) & haveKey(K) & !opened(X,D) > *opened(X,D)
+
+# Goal 3: explore by moving to an unvisited neighbor
+agentAt(X) & link(X,Y) & !visited(Y) > *agentAt(Y)
+
+# testing: move to a closed door
+haveKey(K) & lockedDoor(L,K) & !opened(L,K) > *agentAt(L)

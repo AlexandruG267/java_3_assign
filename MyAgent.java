@@ -353,12 +353,10 @@ public class MyAgent extends Agent {
 			
 			// action that we are going to take
 			Predicate action = new Predicate(s);
-			
 			// simulate an action on a copy of a state
 			KB next_state = new KB();
 			// load our previous state
 			next_state.union(state);
-			
 			// make the new, empty, desires KB
 			KB next_desires = new KB();
 			
@@ -372,7 +370,6 @@ public class MyAgent extends Agent {
 			for (int i = 0; i < partialPlan.size(); i++) {
 				next_plan.add(partialPlan.get(i));
 			}
-			
 			// extend the plan with our last action
 			next_plan.add(action);
 			
